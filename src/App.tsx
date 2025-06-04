@@ -20,8 +20,8 @@ import {
   FullPage,
 } from "ckeditor5";
 import "ckeditor5/ckeditor5.css";
-import { HCardEditing } from "./hcard";
 import generatePDF from "react-to-pdf";
+import { HCardEditing } from "./hcard";
 
 // Define mention items
 const mentionItems = [
