@@ -23,8 +23,8 @@ import {
   SourceEditing,
 } from "ckeditor5";
 import "ckeditor5/ckeditor5.css";
-import { HCardEditing } from "./hcard";
 import generatePDF from "react-to-pdf";
+import { HCardEditing } from "./hcard";
 
 // Define mention items
 const mentionItems = [
@@ -63,15 +63,6 @@ function App() {
       return;
     }
     generatePDF(targetRef, { filename: "page.pdf" });
-
-    // const options = { format: "A4" };
-    // // Example of options with args //
-    // // let options = { format: 'A4', args: ['--no-sandbox', '--disable-setuid-sandbox'] };
-
-    // const file = { content: template };
-    // HTMLToPDF.generatePdf(file, options).then((pdfBuffer: any) => {
-    //   console.log("PDF Buffer:-", pdfBuffer);
-    // });
   };
 
   const convertDocxToHtml = async (file: File) => {
@@ -172,7 +163,6 @@ function App() {
   useEffect(() => {
     const handleDragStart = (event: DragEvent) => {
       const target = event.target as HTMLElement;
-      // Đảm bảo target hợp lệ
       if (!target) return;
 
       const draggable = target.closest("[draggable]");
@@ -312,7 +302,6 @@ function App() {
                   "mention",
                   "htmlComment",
                 ],
-                // initialData: template,
                 mention: {
                   feeds: [
                     {
