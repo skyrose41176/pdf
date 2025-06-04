@@ -53,3 +53,12 @@ button {
 button:hover {
   background-color: #0056b3;
 }
+
+.editor-container_classic-editor .editor-container__editor {
+	min-width: 795px;
+	max-width: 795px;
+}
+
+.ck-source-editing-area textarea{
+left: 0 !important;
+}
