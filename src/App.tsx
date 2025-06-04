@@ -3,7 +3,7 @@ import Mustache from "mustache";
 import { useEffect, useRef, useState } from "react";
 import "./App.css";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
-
+import './docx-styles.css';
 import {
   Alignment,
   AlignmentEditing,
@@ -85,7 +85,7 @@ function App() {
       [name]: value
     }));
   };
-  const W_NAMESPACE = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
+//  const W_NAMESPACE = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
 
 function halfPointsToPx(halfPoints: string) {
   return Math.round(parseInt(halfPoints) * 0.6667);
@@ -724,12 +724,12 @@ if (pPr) {
                   ],
                   
                 },
-                contentsCss:'./docx-styles.css'                // style: {
+                // contentsCss:'./docx-styles.css'                // style: {
                 //   definitions: styleDefinitions
                   
                 // }
               }}
-              onChange={(event, editor) => {
+              onChange={(_, editor) => {
                 const data = editor.getData();
                 setTemplate(data);
               }}
