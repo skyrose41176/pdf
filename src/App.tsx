@@ -61,6 +61,37 @@ const mentionItems = [
   { id: "@address", text: "{{address}}" },
 ];
 
+interface MammothElement {
+  type: string;
+  children: MammothElement[];
+  [key: string]: any;
+}
+
+interface MammothImage {
+  contentType: string;
+  read(type: string): Promise<string>;
+}
+
+interface MammothTransforms {
+  paragraph(transform: (element: MammothElement) => MammothElement): (element: MammothElement) => MammothElement;
+}
+
+interface MammothImages {
+  imgElement(transform: (image: MammothImage) => Promise<{ src: string }>): (image: MammothImage) => Promise<{ src: string }>;
+}
+
+interface ExtendedMammoth {
+  convertToHtml(options: {
+    arrayBuffer: ArrayBuffer;
+    transformDocument?: (element: MammothElement) => MammothElement;
+    convertImage?: (image: MammothImage) => Promise<{ src: string }>;
+  }): Promise<{ value: string }>;
+  transforms: MammothTransforms;
+  images: MammothImages;
+}
+
+const mammothExtended = mammoth as ExtendedMammoth;
+
 function App() {
   const [template, setTemplate] = useState<string>(
     "<p>Xin chào {{name}}, bạn {{age}} tuổi.</p>"
@@ -230,49 +261,102 @@ if (pPr) {
   const convertDocxToHtml = async (file: File) => {
     try {
       const arrayBuffer = await file.arrayBuffer();
-      const result = await mammoth.convertToHtml({ arrayBuffer });
+      const result = await mammothExtended.convertToHtml({ 
+        arrayBuffer,
+        transformDocument: mammothExtended.transforms.paragraph((element) => {
+          // Xử lý alignment từ DOCX
+          if (element.alignment) {
+            const alignStyle = {
+              'left': 'text-align: left;',
+              'right': 'text-align: right;',
+              'center': 'text-align: center;',
+              'justify': 'text-align: justify;',
+              'both': 'text-align: justify;'
+            }[element.alignment] || '';
+            
+            element.styleName = alignStyle;
+          }
+          return element;
+        }),
+        convertImage: mammothExtended.images.imgElement((image) => {
+          return image.read("base64").then((imageBuffer) => {
+            return {
+              src: `data:${image.contentType};base64,${imageBuffer}`
+            };
+          });
+        }),
+        styleMap: [
+          "p[style-name='Normal'] => p:fresh",
+          "p[style-name='Title'] => h1:fresh",
+          "p[style-name='Heading 1'] => h2:fresh",
+          "p[style-name='Heading 2'] => h3:fresh",
+          "table => table.docx-table",
+          "tr => tr.docx-tr",
+          "td => td.docx-td",
+          "th => th.docx-th"
+        ]
+      });
+      
       let html = result.value;
-      // Clean up HTML to be compatible with CKEditor
+      
+      // Thêm CSS để reset các style mặc định và style cho table
+      const resetStyles = `
+        <style>
+          * {
+            text-align: initial;
+          }
+          p, div, h1, h2, h3, h4, h5, h6 {
+            text-align: inherit;
+            margin: initial;
+            padding: initial;
+          }
+          body {
+            margin: 0;
+            padding: 0;
+          }
+          .body {
+            margin: 0;
+            padding: 0;
+          }
+          /* Table styles */
+          .docx-table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 10px 0;
+            border: 1px solid #000;
+          }
+          .docx-td, .docx-th {
+            border: 1px solid #000;
+            padding: 8px;
+            text-align: inherit;
+          }
+          .docx-tr {
+            page-break-inside: avoid;
+          }
+          table {
+            border-collapse: collapse;
+            width: 100%;
+          }
+          td, th {
+            border: 1px solid #000;
+            padding: 8px;
+          }
+        </style>
+      `;
+      
+      html = resetStyles + html;
+      
+      // Clean up không cần thiết
       html = html
-        // // Remove any style attributes that might cause issues
-        // .replace(/ style="[^"]*"/g, "")
-        // // Remove any class attributes
-        // .replace(/ class="[^"]*"/g, "")
-        // // Remove any script tags
-        // .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
-        // // Remove any iframe tags
-        // .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, "")
-        // // Remove any style tags
-        // .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, "")
-        // // Remove any meta tags
-        // .replace(/<meta\b[^>]*>/gi, "")
-        // // Remove any link tags
-        // .replace(/<link\b[^>]*>/gi, "")
-        // // Remove any head tags and their content
-        // .replace(/<head\b[^<]*(?:(?!<\/head>)<[^<]*)*<\/head>/gi, "")
-        // // Remove any body tags but keep their content
-        // .replace(/<\/?body[^>]*>/gi, "")
-        // // Remove any html tags but keep their content
-        // .replace(/<\/?html[^>]*>/gi, "")
-        // // Remove any doctype declarations
-        // .replace(/<!DOCTYPE[^>]*>/gi, "")
-        // // Remove any comments
-        // .replace(/<!--[\s\S]*?-->/g, "")
-        // // Remove any empty paragraphs
-        // .replace(/<p>\s*<\/p>/g, "")
-        // // Remove any multiple line breaks
-        // .replace(/(\r\n|\n|\r)/gm, "")
-        // // Remove any multiple spaces
-        // .replace(/\s+/g, " ")
-        // // Trim the result
+        .replace(/<!DOCTYPE[^>]*>/gi, "")
+        .replace(/<!--[\s\S]*?-->/g, "")
+        .replace(/<p>\s*<\/p>/g, "")
         .trim();
 
-      // If the content is empty after cleaning, return a default paragraph
       if (!html) {
-        html =
-          "<p>Không thể đọc nội dung file. Vui lòng kiểm tra lại file của bạn.</p>";
+        html = "<p>Không thể đọc nội dung file. Vui lòng kiểm tra lại file của bạn.</p>";
       }
-      console.log(html);
+      
       return html;
     } catch (error) {
       console.error("Error converting DOCX to HTML:", error);
@@ -281,8 +365,8 @@ if (pPr) {
   };
 
 
-  const handleFileUpload = async (event: any) => {
-    const file = event.target.files[0];
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target?.files?.[0];
     if (file) {
       if (!file.name.toLowerCase().endsWith(".docx")) {
         alert("Vui lòng chọn một file .docx hợp lệ");
@@ -291,47 +375,67 @@ if (pPr) {
       try {
         const html = await convertDocxToHtml(file);
         const styleDefinitions = await extractStylesXml(file);
-        const htmlWithClasses = mapStyleDefinitionsToHtml(html, styleDefinitions?.styleInfos ??[]);
+        const htmlWithClasses = mapStyleDefinitionsToHtml(html, styleDefinitions?.styleInfos ?? []);
         
         const headerContent =`
   <head>
     <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1, maximum-scale=1"
-    />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="format-detection" content="date=no" />
     <meta name="format-detection" content="address=no" />
     <meta name="format-detection" content="telephone=no" />
     <meta name="x-apple-disable-message-reformatting" />
     <link rel="preconnect" href="https://fonts.gstatic.com" />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Roboto&display=swap"
-      rel="stylesheet"
-    />
+    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet" />
     <style>
       ${styleDefinitions?.cssContent}
+      /* Reset styles */
+      * {
+        text-align: initial !important;
+      }
+      p, div, h1, h2, h3, h4, h5, h6 {
+        text-align: inherit !important;
+      }
+      [style*="text-align"] {
+        text-align: inherit !important;
+      }
+      .ck-editor__editable {
+        text-align: initial !important;
+      }
+      .ck-content {
+        text-align: initial !important;
+      }
+      /* Table styles */
+      .docx-table {
+        border-collapse: collapse !important;
+        width: 100% !important;
+        margin: 10px 0 !important;
+      }
+      .docx-td, .docx-th {
+        border: 1px solid #000 !important;
+        padding: 8px !important;
+        text-align: inherit !important;
+      }
+      .docx-tr {
+        page-break-inside: avoid !important;
+      }
+      table {
+        border-collapse: collapse !important;
+        width: 100% !important;
+      }
+      td, th {
+        border: 1px solid #000 !important;
+        padding: 8px !important;
+      }
     </style>
     <title>Email gửi từ Hệ thống Định Giá Tài Sản (AVM)</title>
   </head>
 `
         const docs =`<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html
-  xmlns="http://www.w3.org/1999/xhtml"
-  xmlns:v="urn:schemas-microsoft-com:vml"
-  xmlns:o="urn:schemas-microsoft-com:office:office"
->`
-              setTemplate(docs +  headerContent + `  <body
-          class="body"
-          style="
-            font-family: Roboto, Oxygen, Ubuntu, Cantarell, Open Sans, Helvetica Neue,
-              sans-serif;
-            font-size: 13px;
-          "
-        >`+htmlWithClasses + ` </body>
-      </html>`);
-      // setTemplate(htmlWithClasses);
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">`
+
+        setTemplate(docs + headerContent + `<body class="body" style="font-family: Roboto, Oxygen, Ubuntu, Cantarell, Open Sans, Helvetica Neue, sans-serif; font-size: 13px; text-align: initial !important;">` + htmlWithClasses + `</body></html>`);
       } catch (error) {
         console.error("Error handling file upload:", error);
         alert("Có lỗi xảy ra khi xử lý file. Vui lòng thử lại.");
