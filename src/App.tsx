@@ -724,7 +724,7 @@ if (pPr) {
                   ],
                   
                 },
-                // style: {
+                contentsCss:'./docx-styles.css'                // style: {
                 //   definitions: styleDefinitions
                   
                 // }
