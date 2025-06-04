@@ -1,55 +1,51 @@
-/* Base text styles */
-.normal {
+.ck-content .normal {
   font-size: 14px;
   line-height: 1.6;
   color: #000;
 }
 
-/* Title and Subtitle */
-.title {
+.ck-content .title {
   font-size: 28px;
   font-weight: bold;
   text-align: center;
   margin: 20px 0;
 }
 
-.subtitle {
+.ck-content .subtitle {
   font-size: 18px;
   font-style: italic;
   text-align: center;
   margin: 10px 0;
 }
 
-/* Headings */
-.heading1 {
+.ck-content .heading1 {
   font-size: 24px;
   font-weight: bold;
   margin: 24px 0 8px;
   color: #2e74b5;
 }
 
-.heading2 {
+.ck-content .heading2 {
   font-size: 20px;
   font-weight: bold;
   margin: 20px 0 6px;
   color: #2e74b5;
 }
 
-.heading3 {
+.ck-content .heading3 {
   font-size: 16px;
   font-weight: bold;
   margin: 18px 0 4px;
   color: #2e74b5;
 }
 
-/* Quotes */
-.quote {
+.ck-content .quote {
   font-style: italic;
   color: #555;
   margin-left: 40px;
 }
 
-.intenseQuote {
+.ck-content .intenseQuote {
   border-left: 4px solid #aaa;
   padding-left: 12px;
   font-style: italic;
@@ -58,34 +54,31 @@
   margin-left: 40px;
 }
 
-/* List paragraph */
-.listParagraph {
+.ck-content .listParagraph {
   margin-left: 20px;
   list-style-type: disc;
 }
 
-/* Emphasis */
-.emphasis {
+.ck-content .emphasis {
   font-style: italic;
 }
 
-.subtleEmphasis {
+.ck-content .subtleEmphasis {
   font-style: italic;
   color: #666;
 }
 
-.intenseEmphasis {
+.ck-content .intenseEmphasis {
   font-weight: bold;
   font-style: italic;
   color: #333;
 }
 
-.strong {
+.ck-content .strong {
   font-weight: bold;
 }
 
-/* Caption */
-.caption {
+.ck-content .caption {
   font-size: 12px;
   text-align: center;
   color: #777;
@@ -93,44 +86,40 @@
   margin-top: 6px;
 }
 
-/* Footnote */
-.footnoteText {
+.ck-content .footnoteText {
   font-size: 12px;
   color: #444;
 }
 
-/* Hyperlinks */
-.hyperlink {
+.ck-content .hyperlink {
   color: #0563c1;
   text-decoration: underline;
   cursor: pointer;
 }
 
-/* TOC (Table of Contents) styles */
-.tocHeading {
+.ck-content .tocHeading {
   font-size: 18px;
   font-weight: bold;
   text-align: center;
   margin: 12px 0;
 }
 
-.toc1 {
+.ck-content .toc1 {
   margin-left: 0;
   font-size: 16px;
 }
 
-.toc2 {
+.ck-content .toc2 {
   margin-left: 20px;
   font-size: 15px;
 }
 
-.toc3 {
+.ck-content .toc3 {
   margin-left: 40px;
   font-size: 14px;
 }
 
-/* Bibliography */
-.bibliography {
+.ck-content .bibliography {
   font-size: 14px;
   font-style: italic;
   color: #444;
