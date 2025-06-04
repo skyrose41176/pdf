@@ -3,6 +3,7 @@ import Mustache from "mustache";
 import { useEffect, useRef, useState } from "react";
 import "./App.css";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
+
 import {
   Alignment,
   AlignmentEditing,
@@ -44,12 +45,13 @@ import {
   TablePropertiesEditing,
   TableToolbar,
   Underline,
-  PendingActions 
+  PendingActions, 
+  Style,
 } from "ckeditor5";
 import "ckeditor5/ckeditor5.css";
 import generatePDF from "react-to-pdf";
 import { HCardEditing } from "./hcard";
-
+import JSZip from 'jszip';
 // Define mention items
 const mentionItems = [
   { id: "@name", text: "{{name}}" },
@@ -83,7 +85,102 @@ function App() {
       [name]: value
     }));
   };
+  const W_NAMESPACE = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
 
+function halfPointsToPx(halfPoints: string) {
+  return Math.round(parseInt(halfPoints) * 0.6667);
+}
+
+function cssObjectToString(cssObj: Record<string, string>) {
+  return Object.entries(cssObj)
+    .map(([k, v]) => {
+      // Nếu là chuỗi text (không phải số hay màu), thì mới cần bọc ""
+      // const shouldQuote = !/^\d+(px|em|rem|%)?$/.test(v) && !/^#/.test(v);
+      if(v == "#auto"){
+      return `${k}: ${`"${v}"`};`;
+
+      }
+      return `${k}: ${`${v}`};`;
+
+      // return `${k}: ${shouldQuote ? `"${v}"` : v};`;
+    })
+    .join(" ");
+}
+  const extractStylesXml = async (file:File) => {
+    const arrayBuffer = await file.arrayBuffer();
+    const zip = await JSZip.loadAsync(arrayBuffer);
+  
+    const stylesXml = await zip.file("word/styles.xml")?.async("string");
+    if (!stylesXml) {
+      console.error("Không tìm thấy styles.xml trong file docx");
+      return;
+    }
+  
+    const parser = new DOMParser();
+    const xmlDoc = parser.parseFromString(stylesXml, "text/xml");
+  
+    const styles = [...xmlDoc.getElementsByTagName("w:style")];
+
+  
+  const styleInfos = styles.map((style,index) => {
+    const styleId = style.getAttribute("w:styleId");
+    const type = style.getAttribute("w:type"); // paragraph, character, table
+    const nameNode = style.getElementsByTagName("w:name")[0];
+    const name = nameNode?.getAttribute("w:val") || styleId;
+
+    const tagMapping = {
+      paragraph: "p",
+      character: "span",
+      table: "table",
+      number: "ol"
+    } as const;
+    
+    type StyleType = keyof typeof tagMapping;
+    
+    let tagName = "div"; // fallback mặc định
+    
+    if (type && type in tagMapping) {
+      tagName = tagMapping[type as StyleType];
+    } // fallback nếu không có mapping
+// Phân tích thuộc tính CSS từ w:rPr và w:pPr
+const cssObj: Record<string, string> = {};
+
+// Run properties
+const rPr = style.getElementsByTagName("w:rPr")[0];
+if (rPr) {
+  const sz = rPr.getElementsByTagName("w:sz")[0];
+  if (sz) cssObj["font-size"] = halfPointsToPx(sz.getAttribute("w:val") || "24") + "px";
+
+  const b = rPr.getElementsByTagName("w:b")[0];
+  if (b) cssObj["font-weight"] = "bold";
+
+  const i = rPr.getElementsByTagName("w:i")[0];
+  if (i) cssObj["font-style"] = "italic";
+
+  const color = rPr.getElementsByTagName("w:color")[0];
+  if (color) cssObj["color"] = "#" + color.getAttribute("w:val");
+}
+
+// Paragraph properties
+const pPr = style.getElementsByTagName("w:pPr")[0];
+if (pPr) {
+  const spacing = pPr.getElementsByTagName("w:spacing")[0];
+  if (spacing) {
+    if (spacing.getAttribute("w:before")) {
+      cssObj["margin-top"] = halfPointsToPx(spacing.getAttribute("w:before") || "0") + "px";
+    }
+    if (spacing.getAttribute("w:after")) {
+      cssObj["margin-bottom"] = halfPointsToPx(spacing.getAttribute("w:after") || "0") + "px";
+    }
+  }
+}
+    return { styleId, name, type, tagName,index ,cssObj };
+  });
+  const cssContent = styleInfos
+    .map(({ styleId, cssObj }) => `.${styleId} { ${cssObjectToString(cssObj)} }`)
+    .join("\n");
+  return {styleInfos,cssContent};
+  };
   const handleRender = () => {
     const result = Mustache.render(template, formData);
     setRendered(result);
@@ -98,13 +195,30 @@ function App() {
     }
     generatePDF(targetRef, { filename: "page.pdf" });
   };
-
+  const mapStyleDefinitionsToHtml =(html:string, styleInfos:any[]) => {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    
+    styleInfos.forEach(({ tagName, styleId, index }) => {
+      // Lấy thẻ theo tagName và index thứ tự
+      const elements = doc.querySelectorAll(tagName);
+  
+      // Chỉ gắn class vào thẻ thứ `index` trong list thẻ đó
+      const el = elements[index];
+      if (el) {
+        el.classList.add(styleId); // hoặc class tương ứng
+        // Có thể gắn thêm attribute để đánh dấu index
+        el.setAttribute("data-style-index", index.toString());
+      }
+    });
+  
+    return doc.body.innerHTML;
+  }
   const convertDocxToHtml = async (file: File) => {
     try {
       const arrayBuffer = await file.arrayBuffer();
       const result = await mammoth.convertToHtml({ arrayBuffer });
       let html = result.value;
-
       // Clean up HTML to be compatible with CKEditor
       html = html
         // // Remove any style attributes that might cause issues
@@ -163,6 +277,9 @@ function App() {
       }
       try {
         const html = await convertDocxToHtml(file);
+        const styleDefinitions = await extractStylesXml(file);
+        const htmlWithClasses = mapStyleDefinitionsToHtml(html, styleDefinitions?.styleInfos ??[]);
+        
         const headerContent =`
   <head>
     <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
@@ -180,6 +297,9 @@ function App() {
       href="https://fonts.googleapis.com/css2?family=Roboto&display=swap"
       rel="stylesheet"
     />
+    <style>
+      ${styleDefinitions?.cssContent}
+    </style>
     <title>Email gửi từ Hệ thống Định Giá Tài Sản (AVM)</title>
   </head>
 `
@@ -189,15 +309,16 @@ function App() {
   xmlns:v="urn:schemas-microsoft-com:vml"
   xmlns:o="urn:schemas-microsoft-com:office:office"
 >`
-        setTemplate(docs +  headerContent + `  <body
-    class="body"
-    style="
-      font-family: Roboto, Oxygen, Ubuntu, Cantarell, Open Sans, Helvetica Neue,
-        sans-serif;
-      font-size: 13px;
-    "
-  >`+html + ` </body>
-</html>`);
+              setTemplate(docs +  headerContent + `  <body
+          class="body"
+          style="
+            font-family: Roboto, Oxygen, Ubuntu, Cantarell, Open Sans, Helvetica Neue,
+              sans-serif;
+            font-size: 13px;
+          "
+        >`+htmlWithClasses + ` </body>
+      </html>`);
+      // setTemplate(htmlWithClasses);
       } catch (error) {
         console.error("Error handling file upload:", error);
         alert("Có lỗi xảy ra khi xử lý file. Vui lòng thử lại.");
@@ -454,6 +575,7 @@ function App() {
               config={{
                 licenseKey: "GPL",
                 plugins: [
+                  Style,
                   Essentials,
                   Paragraph,
                   Bold,
@@ -503,6 +625,7 @@ function App() {
                     '|', 'bold', 'italic', 'strikethrough', 'underline',
                     '|', 'bulletedList', 'numberedList',
                     '|', 'outdent', 'indent',
+                    '|', 'style',
                     '|', 'link', 'blockQuote', 'insertTable', 'imageUpload',
                     '|', 'fontColor', 'fontBackgroundColor',
                     '|', 'alignment',
@@ -575,19 +698,25 @@ function App() {
                   //         hasChanged: true
                   //     };
                   // }
-              },
+                },
+                
                 htmlSupport: {
                   allow: [
                     {
                       name: /^.*$/,
                       styles: true,
                       attributes: true,
-                      classes: true,
-                    },
+                      classes: true
+                    }
                   ],
+                  
                 },
+                // style: {
+                //   definitions: styleDefinitions
+                  
+                // }
               }}
-              onChange={(_, editor) => {
+              onChange={(event, editor) => {
                 const data = editor.getData();
                 setTemplate(data);
               }}
