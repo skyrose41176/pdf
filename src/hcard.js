@@ -37,7 +37,7 @@ export class HCardEditing extends Plugin {
 			allowWhere: '$text',
 			isInline: true,
 			isObject: true,
-			allowAttributes: [ 'email', 'name', 'tel' ]
+			allowAttributes: [ 'email', 'name', 'tel', 'key' ]
 		} );
 	}
 
@@ -74,37 +74,54 @@ export class HCardEditing extends Plugin {
 
 		// Helper method for both downcast converters.
 		function createCardView( modelItem, viewWriter ) {
-			const email = modelItem.getAttribute( 'email' );
-			const name = modelItem.getAttribute( 'name' );
-			const tel = modelItem.getAttribute( 'tel' );
+			// const email = modelItem.getAttribute( 'email' );
+			// const name = modelItem.getAttribute( 'name' );
+			// const tel = modelItem.getAttribute( 'tel' );
+			const key  = modelItem.getAttribute( 'key' );
+
 
 			const cardView = viewWriter.createContainerElement( 'span', {
 				class: 'h-card'
 			} );
-			const linkView = viewWriter.createContainerElement( 'a', {
-				href: `mailto:${ email }`,
-				class: 'p-name u-email'
-			} );
-			const phoneView = viewWriter.createContainerElement( 'span', {
-				class: 'p-tel'
+			// const linkView = viewWriter.createContainerElement( 'a', {
+			// 	href: `mailto:${ email }`,
+			// 	class: 'p-name u-email'
+			// } );
+			// const phoneView = viewWriter.createContainerElement( 'span', {
+			// 	class: 'p-tel'
+			// } );
+
+			const keyView = viewWriter.createContainerElement( 'span', {
+				class: 'p-key'
 			} );
 
+
+			// viewWriter.insert(
+			// 	viewWriter.createPositionAt( linkView, 0 ),
+			// 	viewWriter.createText( name )
+			// );
+			// viewWriter.insert(
+			// 	viewWriter.createPositionAt( phoneView, 0 ),
+			// 	viewWriter.createText( tel )
+			// );
+
 			viewWriter.insert(
-				viewWriter.createPositionAt( linkView, 0 ),
-				viewWriter.createText( name )
+				viewWriter.createPositionAt( keyView, 0 ),
+				viewWriter.createText( key )
 			);
-			viewWriter.insert(
-				viewWriter.createPositionAt( phoneView, 0 ),
-				viewWriter.createText( tel )
-			);
+
+			// viewWriter.insert(
+			// 	viewWriter.createPositionAt( cardView, 0 ),
+			// 	linkView
+			// );
+			// viewWriter.insert(
+			// 	viewWriter.createPositionAt( cardView, 'end' ),
+			// 	phoneView
+			// );
 
 			viewWriter.insert(
 				viewWriter.createPositionAt( cardView, 0 ),
-				linkView
-			);
-			viewWriter.insert(
-				viewWriter.createPositionAt( cardView, 'end' ),
-				phoneView
+				keyView
 			);
 
 			return cardView;
@@ -139,18 +156,18 @@ export class HCardEditing extends Plugin {
 
 			writer.appendChild(
 				writer.createElement( 'span', { class: 'h-card' }, [
-					writer.createElement(
-						'a',
-						{
-							href: `mailto:${ contact.email }`,
-							class: 'p-name u-email'
-						},
-						contact.name
-					),
+					// writer.createElement(
+					// 	'a',
+					// 	{
+					// 		href: `mailto:${ contact.email }`,
+					// 		class: 'p-name u-email'
+					// 	},
+					// 	contact.name
+					// ),
 					writer.createElement(
 						'span',
-						{ class: 'p-tel' },
-						contact.tel
+						{ class: 'p-key' },
+						contact.key
 					)
 				] ),
 				fragment
@@ -187,17 +204,22 @@ export class HCardEditing extends Plugin {
 
 function getCardDataFromViewElement( viewElement ) {
 	const children = Array.from( viewElement.getChildren() );
-	const linkElement = children.find(
-		element => element.is( 'element', 'a' ) && element.hasClass( 'p-name' )
-	);
-	const telElement = children.find(
-		element => element.is( 'element', 'span' ) && element.hasClass( 'p-tel' )
+	// const linkElement = children.find(
+	// 	element => element.is( 'element', 'a' ) && element.hasClass( 'p-name' )
+	// );
+	// const telElement = children.find(
+	// 	element => element.is( 'element', 'span' ) && element.hasClass( 'p-tel' )
+	// );
+
+	const keyElement = children.find(
+		element => element.is( 'element', 'span' ) && element.hasClass( 'p-key' )
 	);
 
 	return {
-		name: getText( linkElement ),
-		tel: getText( telElement ),
-		email: linkElement.getAttribute( 'href' ).replace( /^mailto:/i, '' )
+		// name: getText( linkElement ),
+		// tel: getText( telElement ),
+		// email: linkElement.getAttribute( 'href' ).replace( /^mailto:/i, '' )
+		key: getText( keyElement )
 	};
 }
 

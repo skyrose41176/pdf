@@ -4,19 +4,32 @@ import { useEffect, useRef, useState } from "react";
 import "./App.css";
 // import { ckeditorConfig } from "./ckeditor";
 // import ClassicEditor  from "@ckeditor/ckeditor5-build-classic";
-import { CKEditor } from '@ckeditor/ckeditor5-react';
-import { ClassicEditor, Essentials, Paragraph, Bold, Italic, Mention, Image, Clipboard ,DragDrop,
-	DragDropBlockToolbar} from 'ckeditor5';
-import 'ckeditor5/ckeditor5.css';
-import { HCardEditing } from './hcard';
+import { CKEditor } from "@ckeditor/ckeditor5-react";
+import {
+  ClassicEditor,
+  Essentials,
+  Paragraph,
+  Bold,
+  Italic,
+  Mention,
+  Image,
+  Clipboard,
+  DragDrop,
+  DragDropBlockToolbar,
+  HtmlComment,
+  FullPage,
+} from "ckeditor5";
+import "ckeditor5/ckeditor5.css";
+import { HCardEditing } from "./hcard";
+import generatePDF from "react-to-pdf";
+
 // Define mention items
 const mentionItems = [
-  { id: '@name', text: '{{name}}' },
-  { id: '@age', text: '{{age}}' },
-  { id: '@email', text: '{{email}}' },
-  { id: '@phone', text: '{{phone}}' },
-  { id: '@address', text: '{{address}}' },
-
+  { id: "@name", text: "{{name}}" },
+  { id: "@age", text: "{{age}}" },
+  { id: "@email", text: "{{email}}" },
+  { id: "@phone", text: "{{phone}}" },
+  { id: "@address", text: "{{address}}" },
 ];
 
 function App() {
@@ -29,11 +42,33 @@ function App() {
   const data = {
     name: "Nguyễn Văn A",
     age: 30,
+    phone: "0965956046",
+    direct: "62A cách mạng tháng 8",
+    birth: "23/12/2001",
+    sex: "Nam",
   };
-
   const handleRender = () => {
     const result = Mustache.render(template, data);
     setRendered(result);
+  };
+
+  const targetRef = useRef<HTMLDivElement>(null);
+
+  const handleExportPDF = () => {
+    if (!rendered) {
+      alert("Vui lòng render dữ liệu trước khi xuất PDF");
+      return;
+    }
+    generatePDF(targetRef, { filename: "page.pdf" });
+
+    // const options = { format: "A4" };
+    // // Example of options with args //
+    // // let options = { format: 'A4', args: ['--no-sandbox', '--disable-setuid-sandbox'] };
+
+    // const file = { content: template };
+    // HTMLToPDF.generatePdf(file, options).then((pdfBuffer: any) => {
+    //   console.log("PDF Buffer:-", pdfBuffer);
+    // });
   };
 
   const convertDocxToHtml = async (file: File) => {
@@ -108,63 +143,30 @@ function App() {
   };
   const contacts = [
     {
-      key:'{{ name }}'
+      title: "Tên",
+      key: "{{ name }}",
     },
     {
-      name: 'D\'Artagnan',
-      tel: '+45 2345 234 235',
-      email: 'dartagnan@example.com',
-      avatar: 'dartagnan',
-      key:'{{ name }}'
+      title: "Số điện thoại",
+      key: "{{ phone }}",
     },
     {
-      name: 'Little Red Riding Hood',
-      tel: '+45 2345 234 235',
-      email: 'lrrh@example.com',
-      avatar: 'lrrh',
-      key:'{{ name }}'
+      title: "Địa chỉ",
+      key: "{{ direct }}",
     },
     {
-      name: 'Alice',
-      tel: '+20 4345 234 235',
-      email: 'alice@example.com',
-      avatar: 'alice',
-      key:'{{ name }}'
+      title: "Ngày sinh",
+      key: "{{ birth }}",
     },
     {
-      name: 'Phileas Fogg',
-      tel: '+44 3345 234 235',
-      email: 'p.fogg@example.com',
-      avatar: 'pfog',
-      key:'{{ name }}'
+      title: "Giới tính",
+      key: "{{ sex }}",
     },
-    {
-      name: 'Winnetou',
-      tel: '+44 3345 234 235',
-      email: 'winnetou@example.com',
-      avatar: 'winetou',
-      key:'{{ name }}'
-    },
-    {
-      name: 'Edmond Dantès',
-      tel: '+20 4345 234 235',
-      email: 'count@example.com',
-      avatar: 'edantes',
-      key:'{{ name }}'
-    },
-    {
-      name: 'Robinson Crusoe',
-      tel: '+45 2345 234 235',
-      email: 'r.crusoe@example.com',
-      avatar: 'rcrusoe',
-      key:'{{ name }}'
-    }
   ];
   const contactsRef = useRef<HTMLUListElement>(null);
   const editorRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-
     const handleDragStart = (event: DragEvent) => {
       const target = event.target as HTMLElement;
       // Đảm bảo target hợp lệ
@@ -173,7 +175,9 @@ function App() {
       const draggable = target.closest("[draggable]");
       if (!draggable) return;
 
-      const dataContact = (draggable as HTMLElement).getAttribute("data-contact");
+      const dataContact = (draggable as HTMLElement).getAttribute(
+        "data-contact"
+      );
       if (dataContact === null) return;
 
       event.dataTransfer?.setData("text/plain", draggable.textContent || "");
@@ -191,7 +195,10 @@ function App() {
     }
     return () => {
       if (current) {
-        current.removeEventListener("dragstart", handleDragStart as EventListener);
+        current.removeEventListener(
+          "dragstart",
+          handleDragStart as EventListener
+        );
       }
     };
   }, []);
@@ -206,15 +213,17 @@ function App() {
           onChange={handleFileUpload}
           ref={fileInputRef}
           style={{ display: "none" }}
-        />
+        />{" "}
         <button
           onClick={() => fileInputRef.current.click()}
           style={{ marginRight: "1rem" }}
-          
         >
           Import File DOCX
         </button>
-        <button onClick={handleRender}>Render dữ liệu</button>
+        <button onClick={handleRender} style={{ marginRight: "1rem" }}>
+          Render dữ liệu
+        </button>
+        <button onClick={handleExportPDF}>Xuất PDF</button>
       </div>
 
       <div
@@ -234,57 +243,94 @@ function App() {
             }
           `}
         </style>
-      <div className="drag-drop-demo" style={{ display: "flex", gap: 32 }}>
-      <ul className="contacts" ref={contactsRef} style={{ listStyle: "none", padding: 0 }}>
-        {contacts.map((contact, id) => (
-          <li key={id}>
-            <div
-              className="contact "
-              data-contact={id}
-              draggable="true"
-              style={{ 
-                border: "1px solid #ddd", 
-                padding: "1rem", 
-                borderRadius: "4px",
-                backgroundColor: "white" ,
-                alignItems: "center", marginBottom: 8, cursor: "grab" 
-              }}
-            >
-              <h4 style={{ margin: "0 0 0.5rem 0" }}>{contact.name}</h4>
+        <div className="drag-drop-demo" style={{ display: "flex", gap: 32 }}>
+          <ul
+            className="contacts"
+            ref={contactsRef}
+            style={{ listStyle: "none", padding: "10px", margin: 0 }}
+          >
+            {contacts.map((contact, id) => (
+              <li key={id}>
+                <div
+                  className="contact "
+                  data-contact={id}
+                  draggable="true"
+                  style={{
+                    border: "1px solid #ddd",
+                    padding: "1rem",
+                    borderRadius: "4px",
+                    backgroundColor: "white",
+                    alignItems: "center",
+                    marginBottom: 8,
+                    cursor: "grab",
+                  }}
+                >
+                  {/* <h4 style={{ margin: "0 0 0.5rem 0" }}>{contact.name}</h4>
               <p style={{ margin: "0.25rem 0" }}>📧 {contact.email}</p>
-              <p style={{ margin: "0.25rem 0" }}>📞 {contact.tel}</p>
-              <p style={{ margin: "0.25rem 0" }}>👤 {contact.avatar}</p>
-            </div>
-          </li>
-        ))}
-      </ul>
-      <div id="snippet-drag-drop" ref={editorRef} style={{ flex: 1, minHeight: 200, border: "1px solid #ccc" }}>
-        <CKEditor
-            editor={ ClassicEditor }
-            config={ {
-                licenseKey: 'GPL',
-                plugins: [ Essentials, Paragraph, Bold, Italic ,Mention,Image,Clipboard,DragDrop,
-                  DragDropBlockToolbar,HCardEditing],
-                toolbar: [ 'undo', 'redo', '|', 'bold', 'italic', '|' ,'clipboard','mention'],
-                initialData: template,
+              <p style={{ margin: "0.25rem 0" }}>📞 {contact.tel}</p> */}
+                  <p style={{ margin: "0.25rem 0" }}>📧 {contact.title}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+          <div
+            id="snippet-drag-drop"
+            ref={editorRef}
+            style={{ flex: 1, minHeight: 200, border: "1px solid #ccc" }}
+          >
+            <CKEditor
+              editor={ClassicEditor}
+              data={template}
+              config={{
+                licenseKey: "GPL",
+                plugins: [
+                  Essentials,
+                  Paragraph,
+                  Bold,
+                  Italic,
+                  Mention,
+                  Image,
+                  Clipboard,
+                  DragDrop,
+                  DragDropBlockToolbar,
+                  HCardEditing,
+                  HtmlComment,
+                  FullPage,
+                ],
+                toolbar: [
+                  "undo",
+                  "redo",
+                  "|",
+                  "bold",
+                  "italic",
+                  "|",
+                  "clipboard",
+                  "mention",
+                  "htmlcomment",
+                ],
+                // initialData: template,
                 mention: {
                   feeds: [
                     {
-                      marker: '@',
-                      feed: mentionItems.map(item => item.id),
+                      marker: "@",
+                      feed: mentionItems.map((item) => item.id),
                       minimumCharacters: 1,
-                    }
-                  ]
-                }
-                
-            } }
-            onChange={ (_, editor) => {
+                    },
+                  ],
+                },
+                htmlSupport: {
+                  fullPage: {
+                    // Configuration.
+                  },
+                },
+              }}
+              onChange={(_, editor) => {
                 const data = editor.getData();
                 setTemplate(data);
-            }}
-        />
-      </div>
-    </div>
+              }}
+            />
+          </div>
+        </div>
       </div>
 
       <h2>Kết quả:</h2>
@@ -296,11 +342,12 @@ function App() {
           backgroundColor: "#f9f9f9",
         }}
       >
-        <div dangerouslySetInnerHTML={{ __html: rendered }} />
+        <div ref={targetRef} dangerouslySetInnerHTML={{ __html: rendered }} />
       </div>
+      {/* 
+      <iframe src={blobUrl}></iframe> */}
     </div>
   );
 }
-
 
 export default App;
