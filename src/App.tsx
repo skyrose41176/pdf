@@ -110,55 +110,55 @@ function App() {
     {
       key:'{{ name }}'
     },
-    // {
-    //   name: 'D\'Artagnan',
-    //   tel: '+45 2345 234 235',
-    //   email: 'dartagnan@example.com',
-    //   avatar: 'dartagnan',
-    //   key:'{{ name }}'
-    // },
-    // {
-    //   name: 'Little Red Riding Hood',
-    //   tel: '+45 2345 234 235',
-    //   email: 'lrrh@example.com',
-    //   avatar: 'lrrh',
-    //   key:'{{ name }}'
-    // },
-    // {
-    //   name: 'Alice',
-    //   tel: '+20 4345 234 235',
-    //   email: 'alice@example.com',
-    //   avatar: 'alice',
-    //   key:'{{ name }}'
-    // },
-    // {
-    //   name: 'Phileas Fogg',
-    //   tel: '+44 3345 234 235',
-    //   email: 'p.fogg@example.com',
-    //   avatar: 'pfog',
-    //   key:'{{ name }}'
-    // },
-    // {
-    //   name: 'Winnetou',
-    //   tel: '+44 3345 234 235',
-    //   email: 'winnetou@example.com',
-    //   avatar: 'winetou',
-    //   key:'{{ name }}'
-    // },
-    // {
-    //   name: 'Edmond Dantès',
-    //   tel: '+20 4345 234 235',
-    //   email: 'count@example.com',
-    //   avatar: 'edantes',
-    //   key:'{{ name }}'
-    // },
-    // {
-    //   name: 'Robinson Crusoe',
-    //   tel: '+45 2345 234 235',
-    //   email: 'r.crusoe@example.com',
-    //   avatar: 'rcrusoe',
-    //   key:'{{ name }}'
-    // }
+    {
+      name: 'D\'Artagnan',
+      tel: '+45 2345 234 235',
+      email: 'dartagnan@example.com',
+      avatar: 'dartagnan',
+      key:'{{ name }}'
+    },
+    {
+      name: 'Little Red Riding Hood',
+      tel: '+45 2345 234 235',
+      email: 'lrrh@example.com',
+      avatar: 'lrrh',
+      key:'{{ name }}'
+    },
+    {
+      name: 'Alice',
+      tel: '+20 4345 234 235',
+      email: 'alice@example.com',
+      avatar: 'alice',
+      key:'{{ name }}'
+    },
+    {
+      name: 'Phileas Fogg',
+      tel: '+44 3345 234 235',
+      email: 'p.fogg@example.com',
+      avatar: 'pfog',
+      key:'{{ name }}'
+    },
+    {
+      name: 'Winnetou',
+      tel: '+44 3345 234 235',
+      email: 'winnetou@example.com',
+      avatar: 'winetou',
+      key:'{{ name }}'
+    },
+    {
+      name: 'Edmond Dantès',
+      tel: '+20 4345 234 235',
+      email: 'count@example.com',
+      avatar: 'edantes',
+      key:'{{ name }}'
+    },
+    {
+      name: 'Robinson Crusoe',
+      tel: '+45 2345 234 235',
+      email: 'r.crusoe@example.com',
+      avatar: 'rcrusoe',
+      key:'{{ name }}'
+    }
   ];
   const contactsRef = useRef<HTMLUListElement>(null);
   const editorRef = useRef<HTMLDivElement>(null);
@@ -179,7 +179,7 @@ function App() {
       event.dataTransfer?.setData("text/plain", draggable.textContent || "");
       event.dataTransfer?.setData("text/html", draggable.innerHTML);
       event.dataTransfer?.setData(
-        "class-data",
+        "contact",
         JSON.stringify(contacts[Number(dataContact)])
       );
       event.dataTransfer?.setDragImage(draggable, 0, 0);
@@ -239,7 +239,7 @@ function App() {
         {contacts.map((contact, id) => (
           <li key={id}>
             <div
-              className="class-data h-card"
+              className="contact "
               data-contact={id}
               draggable="true"
               style={{ 
@@ -250,10 +250,10 @@ function App() {
                 alignItems: "center", marginBottom: 8, cursor: "grab" 
               }}
             >
-              <h4 style={{ margin: "0 0 0.5rem 0" }}>{contact.key}</h4>
-              {/* <p style={{ margin: "0.25rem 0" }}>📧 {contact.email}</p>
+              <h4 style={{ margin: "0 0 0.5rem 0" }}>{contact.name}</h4>
+              <p style={{ margin: "0.25rem 0" }}>📧 {contact.email}</p>
               <p style={{ margin: "0.25rem 0" }}>📞 {contact.tel}</p>
-              <p style={{ margin: "0.25rem 0" }}>👤 {contact.avatar}</p> */}
+              <p style={{ margin: "0.25rem 0" }}>👤 {contact.avatar}</p>
             </div>
           </li>
         ))}
