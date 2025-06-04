@@ -2,31 +2,26 @@ import mammoth from "mammoth";
 import Mustache from "mustache";
 import { useEffect, useRef, useState } from "react";
 import "./App.css";
-// import { ckeditorConfig } from "./ckeditor";
-// import ClassicEditor  from "@ckeditor/ckeditor5-build-classic";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
 import {
-  ClassicEditor,
-  Essentials,
-  Paragraph,
-  Bold,
-  Italic,
-  Mention,
-  Image,
-  Clipboard,
-  DragDrop,
-  DragDropBlockToolbar,
-  HtmlComment,
-  FullPage,
-  Link,
-  Heading,
-  Strikethrough,
   Alignment,
   AlignmentEditing,
   BlockQuote,
+  Bold,
+  ClassicEditor,
+  Clipboard,
+  DragDrop,
+  DragDropBlockToolbar,
+  Essentials,
   Font,
   FontBackgroundColor,
   FontColor,
+  FullPage,
+  GeneralHtmlSupport,
+  Heading,
+  HtmlComment,
+  HtmlEmbed,
+  Image,
   ImageResize,
   ImageStyle,
   ImageToolbar,
@@ -34,8 +29,14 @@ import {
   ImageUploadEditing,
   ImageUploadProgress,
   Indent,
+  Italic,
+  Link,
   List,
   ListProperties,
+  Mention,
+  Paragraph,
+  SourceEditing,
+  Strikethrough,
   Table,
   TableCellProperties,
   TableCellPropertiesEditing,
@@ -43,9 +44,6 @@ import {
   TablePropertiesEditing,
   TableToolbar,
   Underline,
-  GeneralHtmlSupport,
-  HtmlEmbed,
-  SourceEditing,
 } from "ckeditor5";
 import "ckeditor5/ckeditor5.css";
 import generatePDF from "react-to-pdf";
@@ -173,6 +171,10 @@ function App() {
     {
       title: "Tên",
       key: "{{ name }}",
+    },
+    {
+      title: "Tuổi",
+      key: "{{ age }}",
     },
     {
       title: "Số điện thoại",
@@ -421,6 +423,9 @@ function App() {
                   HCardEditing,
                   SourceEditing,
                   GeneralHtmlSupport,
+                  HtmlComment,
+                  FullPage,
+                  HtmlEmbed
                 ],
                 toolbar: {
                   items: [
@@ -433,6 +438,9 @@ function App() {
                     '|', 'fontColor', 'fontBackgroundColor',
                     '|', 'alignment',
                     '|','sourceEditing',
+                    '|','htmlComment',
+                    '|','fullPage',
+                    '|','htmlEmbed',
                     '|', 'clipboard', 'mention', 'htmlcomment'
                   ],
                   shouldNotGroupWhenFull: true
@@ -516,8 +524,6 @@ function App() {
       >
         <div ref={targetRef} dangerouslySetInnerHTML={{ __html: rendered }} />
       </div>
-      {/* 
-      <iframe src={blobUrl}></iframe> */}
     </div>
   );
 }
