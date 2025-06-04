@@ -320,7 +320,20 @@ function App() {
                 },
                 htmlSupport: {
                   fullPage: {
-                    // Configuration.
+                    allowRenderStylesFromHead: true,
+                    // Strip unsafe properties and values, for example:
+                    // values like url( ... ) that may execute malicious code
+                    // from an unknown source.
+                    // sanitizeCss(CssString) {
+                    //   const sanitizedCss = sanitize(CssString);
+
+                    //   return {
+                    //     css: sanitizedCss,
+                    //     // true or false depending on whether
+                    //     // the sanitizer stripped anything.
+                    //     hasChanged: true,
+                    //   };
+                    // },
                   },
                 },
               }}
