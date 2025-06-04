@@ -160,7 +160,6 @@ if (rPr) {
   const color = rPr.getElementsByTagName("w:color")[0];
   if (color) cssObj["color"] = "#" + color.getAttribute("w:val");
 }
-
 // Paragraph properties
 const pPr = style.getElementsByTagName("w:pPr")[0];
 if (pPr) {
@@ -171,6 +170,20 @@ if (pPr) {
     }
     if (spacing.getAttribute("w:after")) {
       cssObj["margin-bottom"] = halfPointsToPx(spacing.getAttribute("w:after") || "0") + "px";
+    }
+  }
+  const jc = pPr.getElementsByTagName("w:jc")[0];
+  const alignMap: Record<string, string> = {
+    left: "left",
+    center: "center",
+    right: "right",
+    both: "justify"
+  };
+
+  if (jc) {
+    const alignVal = jc.getAttribute("w:val");
+    if (alignVal && alignMap[alignVal]) {
+      cssObj["text-align"] = alignMap[alignVal];
     }
   }
 }
