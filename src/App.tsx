@@ -44,6 +44,7 @@ import {
   TablePropertiesEditing,
   TableToolbar,
   Underline,
+  PendingActions 
 } from "ckeditor5";
 import "ckeditor5/ckeditor5.css";
 import generatePDF from "react-to-pdf";
@@ -64,6 +65,7 @@ function App() {
   );
   const [rendered, setRendered] = useState("");
   const fileInputRef = useRef<any>(null);
+  const htmlFileInputRef = useRef<any>(null);
 
   const [formData, setFormData] = useState({
     name: "Nguyễn Văn A",
@@ -151,6 +153,7 @@ function App() {
     }
   };
 
+
   const handleFileUpload = async (event: any) => {
     const file = event.target.files[0];
     if (file) {
@@ -160,13 +163,65 @@ function App() {
       }
       try {
         const html = await convertDocxToHtml(file);
-        setTemplate(html);
+        const headerContent =`
+  <head>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1"
+    />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="format-detection" content="date=no" />
+    <meta name="format-detection" content="address=no" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="x-apple-disable-message-reformatting" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto&display=swap"
+      rel="stylesheet"
+    />
+    <title>Email gửi từ Hệ thống Định Giá Tài Sản (AVM)</title>
+  </head>
+`
+        const docs =`<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html
+  xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:v="urn:schemas-microsoft-com:vml"
+  xmlns:o="urn:schemas-microsoft-com:office:office"
+>`
+        setTemplate(docs +  headerContent + `  <body
+    class="body"
+    style="
+      font-family: Roboto, Oxygen, Ubuntu, Cantarell, Open Sans, Helvetica Neue,
+        sans-serif;
+      font-size: 13px;
+    "
+  >`+html + ` </body>
+</html>`);
       } catch (error) {
         console.error("Error handling file upload:", error);
         alert("Có lỗi xảy ra khi xử lý file. Vui lòng thử lại.");
       }
     }
   };
+
+  const handleHtmlFileUpload = async (event: any) => {
+    const file = event.target.files[0];
+    if (file) {
+      if (!file.name.toLowerCase().endsWith(".html")) {
+        alert("Vui lòng chọn một file .html hợp lệ");
+        return;
+      }
+      try {
+        const text = await file.text();
+        setTemplate(text);
+      } catch (error) {
+        console.error("Error handling HTML file upload:", error);
+        alert("Có lỗi xảy ra khi xử lý file. Vui lòng thử lại.");
+      }
+    }
+  };
+
   const contacts = [
     {
       title: "Tên",
@@ -315,12 +370,25 @@ function App() {
           onChange={handleFileUpload}
           ref={fileInputRef}
           style={{ display: "none" }}
-        />{" "}
+        />
+        <input
+          type="file"
+          accept=".html"
+          onChange={handleHtmlFileUpload}
+          ref={htmlFileInputRef}
+          style={{ display: "none" }}
+        />
         <button
           onClick={() => fileInputRef.current.click()}
           style={{ marginRight: "1rem" }}
         >
           Import File DOCX
+        </button>
+        <button
+          onClick={() => htmlFileInputRef.current.click()}
+          style={{ marginRight: "1rem" }}
+        >
+          Import File HTML
         </button>
         <button onClick={handleRender} style={{ marginRight: "1rem" }}>
           Render dữ liệu
@@ -425,7 +493,8 @@ function App() {
                   GeneralHtmlSupport,
                   HtmlComment,
                   FullPage,
-                  HtmlEmbed
+                  HtmlEmbed,
+                  PendingActions
                 ],
                 toolbar: {
                   items: [
@@ -493,6 +562,20 @@ function App() {
                     },
                   ],
                 },
+                htmlEmbed: {
+                  showPreviews: true,
+                  // sanitizeHtml: ( inputHtml ) => {
+                  //     // Strip unsafe elements and attributes, for example:
+                  //     // the `<script>` elements and `on*` attributes.
+                  //     const outputHtml = sanitize( inputHtml );
+      
+                  //     return {
+                  //         html: outputHtml,
+                  //         // true or false depending on whether the sanitizer stripped anything.
+                  //         hasChanged: true
+                  //     };
+                  // }
+              },
                 htmlSupport: {
                   allow: [
                     {
