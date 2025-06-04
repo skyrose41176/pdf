@@ -1,12 +1,14 @@
 import mammoth from "mammoth";
 import Mustache from "mustache";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "./App.css";
 // import { ckeditorConfig } from "./ckeditor";
 // import ClassicEditor  from "@ckeditor/ckeditor5-build-classic";
 import { CKEditor } from '@ckeditor/ckeditor5-react';
-import { ClassicEditor, Essentials, Paragraph, Bold, Italic, Mention, Image, Clipboard } from 'ckeditor5';
+import { ClassicEditor, Essentials, Paragraph, Bold, Italic, Mention, Image, Clipboard ,DragDrop,
+	DragDropBlockToolbar} from 'ckeditor5';
 import 'ckeditor5/ckeditor5.css';
+import { HCardEditing } from './hcard';
 // Define mention items
 const mentionItems = [
   { id: '@name', text: '{{name}}' },
@@ -104,7 +106,95 @@ function App() {
       }
     }
   };
+  const contacts = [
+    {
+      key:'{{ name }}'
+    },
+    // {
+    //   name: 'D\'Artagnan',
+    //   tel: '+45 2345 234 235',
+    //   email: 'dartagnan@example.com',
+    //   avatar: 'dartagnan',
+    //   key:'{{ name }}'
+    // },
+    // {
+    //   name: 'Little Red Riding Hood',
+    //   tel: '+45 2345 234 235',
+    //   email: 'lrrh@example.com',
+    //   avatar: 'lrrh',
+    //   key:'{{ name }}'
+    // },
+    // {
+    //   name: 'Alice',
+    //   tel: '+20 4345 234 235',
+    //   email: 'alice@example.com',
+    //   avatar: 'alice',
+    //   key:'{{ name }}'
+    // },
+    // {
+    //   name: 'Phileas Fogg',
+    //   tel: '+44 3345 234 235',
+    //   email: 'p.fogg@example.com',
+    //   avatar: 'pfog',
+    //   key:'{{ name }}'
+    // },
+    // {
+    //   name: 'Winnetou',
+    //   tel: '+44 3345 234 235',
+    //   email: 'winnetou@example.com',
+    //   avatar: 'winetou',
+    //   key:'{{ name }}'
+    // },
+    // {
+    //   name: 'Edmond Dantès',
+    //   tel: '+20 4345 234 235',
+    //   email: 'count@example.com',
+    //   avatar: 'edantes',
+    //   key:'{{ name }}'
+    // },
+    // {
+    //   name: 'Robinson Crusoe',
+    //   tel: '+45 2345 234 235',
+    //   email: 'r.crusoe@example.com',
+    //   avatar: 'rcrusoe',
+    //   key:'{{ name }}'
+    // }
+  ];
+  const contactsRef = useRef<HTMLUListElement>(null);
+  const editorRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+
+    const handleDragStart = (event: DragEvent) => {
+      const target = event.target as HTMLElement;
+      // Đảm bảo target hợp lệ
+      if (!target) return;
+
+      const draggable = target.closest("[draggable]");
+      if (!draggable) return;
+
+      const dataContact = (draggable as HTMLElement).getAttribute("data-contact");
+      if (dataContact === null) return;
+
+      event.dataTransfer?.setData("text/plain", draggable.textContent || "");
+      event.dataTransfer?.setData("text/html", draggable.innerHTML);
+      event.dataTransfer?.setData(
+        "class-data",
+        JSON.stringify(contacts[Number(dataContact)])
+      );
+      event.dataTransfer?.setDragImage(draggable, 0, 0);
+    };
+
+    const current = contactsRef.current;
+    if (current) {
+      current.addEventListener("dragstart", handleDragStart as EventListener);
+    }
+    return () => {
+      if (current) {
+        current.removeEventListener("dragstart", handleDragStart as EventListener);
+      }
+    };
+  }, []);
   return (
     <div className="App" style={{ padding: "2rem", fontFamily: "Arial" }}>
       <h2>Soạn mẫu với CKEditor</h2>
@@ -130,37 +220,71 @@ function App() {
       <div
         style={{
           border: "1px solid #ccc",
-          minHeight: "600px",
+          minHeight: "800px",
           marginBottom: "1rem",
+          width: "100vh",
         }}
       >
+        <style>
+          {`
+            .ck-editor__editable {
+              min-height: 700px !important;
+              max-height: 700px !important;
+              overflow-y: auto !important;
+            }
+          `}
+        </style>
+      <div className="drag-drop-demo" style={{ display: "flex", gap: 32 }}>
+      <ul className="contacts" ref={contactsRef} style={{ listStyle: "none", padding: 0 }}>
+        {contacts.map((contact, id) => (
+          <li key={id}>
+            <div
+              className="class-data h-card"
+              data-contact={id}
+              draggable="true"
+              style={{ 
+                border: "1px solid #ddd", 
+                padding: "1rem", 
+                borderRadius: "4px",
+                backgroundColor: "white" ,
+                alignItems: "center", marginBottom: 8, cursor: "grab" 
+              }}
+            >
+              <h4 style={{ margin: "0 0 0.5rem 0" }}>{contact.key}</h4>
+              {/* <p style={{ margin: "0.25rem 0" }}>📧 {contact.email}</p>
+              <p style={{ margin: "0.25rem 0" }}>📞 {contact.tel}</p>
+              <p style={{ margin: "0.25rem 0" }}>👤 {contact.avatar}</p> */}
+            </div>
+          </li>
+        ))}
+      </ul>
+      <div id="snippet-drag-drop" ref={editorRef} style={{ flex: 1, minHeight: 200, border: "1px solid #ccc" }}>
         <CKEditor
             editor={ ClassicEditor }
             config={ {
                 licenseKey: 'GPL',
-                plugins: [ Essentials, Paragraph, Bold, Italic ,Mention,Image,Clipboard],
+                plugins: [ Essentials, Paragraph, Bold, Italic ,Mention,Image,Clipboard,DragDrop,
+                  DragDropBlockToolbar,HCardEditing],
                 toolbar: [ 'undo', 'redo', '|', 'bold', 'italic', '|' ,'clipboard','mention'],
-                initialData: '<p>Hello from CKEditor 5 in React!</p>',
+                initialData: template,
                 mention: {
                   feeds: [
                     {
                       marker: '@',
                       feed: mentionItems.map(item => item.id),
                       minimumCharacters: 1,
-                      itemRenderer: (item: any) => {
-                        // This function controls how the suggestion looks in the dropdown
-                        const div = document.createElement('div');
-                        // Display just the variable name (e.g., 'name', 'age') in the dropdown
-                        // We can extract this from the text property '{{name}}' -> 'name'
-                        // const variableName = item.text.replace(/^{{\s*|\s*}}$/g, '');
-                        div.textContent = mentionItems.find(men => men.id === item)?.text ?? "";
-                        return div;
-                      }
                     }
                   ]
                 }
+                
             } }
+            onChange={ (_, editor) => {
+                const data = editor.getData();
+                setTemplate(data);
+            }}
         />
+      </div>
+    </div>
       </div>
 
       <h2>Kết quả:</h2>
@@ -171,8 +295,9 @@ function App() {
           marginTop: "1rem",
           backgroundColor: "#f9f9f9",
         }}
-        dangerouslySetInnerHTML={{ __html: rendered }}
-      />
+      >
+        <div dangerouslySetInnerHTML={{ __html: rendered }} />
+      </div>
     </div>
   );
 }
