@@ -18,6 +18,31 @@ import {
   DragDropBlockToolbar,
   HtmlComment,
   FullPage,
+  Link,
+  Heading,
+  Strikethrough,
+  Alignment,
+  AlignmentEditing,
+  BlockQuote,
+  Font,
+  FontBackgroundColor,
+  FontColor,
+  ImageResize,
+  ImageStyle,
+  ImageToolbar,
+  ImageUpload,
+  ImageUploadEditing,
+  ImageUploadProgress,
+  Indent,
+  List,
+  ListProperties,
+  Table,
+  TableCellProperties,
+  TableCellPropertiesEditing,
+  TableProperties,
+  TablePropertiesEditing,
+  TableToolbar,
+  Underline,
 } from "ckeditor5";
 import "ckeditor5/ckeditor5.css";
 import generatePDF from "react-to-pdf";
@@ -39,16 +64,25 @@ function App() {
   const [rendered, setRendered] = useState("");
   const fileInputRef = useRef<any>(null);
 
-  const data = {
+  const [formData, setFormData] = useState({
     name: "Nguyễn Văn A",
     age: 30,
     phone: "0965956046",
     direct: "62A cách mạng tháng 8",
     birth: "23/12/2001",
     sex: "Nam",
+  });
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
+
   const handleRender = () => {
-    const result = Mustache.render(template, data);
+    const result = Mustache.render(template, formData);
     setRendered(result);
   };
 
@@ -196,6 +230,79 @@ function App() {
     <div className="App" style={{ padding: "2rem", fontFamily: "Arial" }}>
       <h2>Soạn mẫu với CKEditor</h2>
 
+      {/* Add Form Component */}
+      <div style={{ 
+        marginBottom: "2rem", 
+        padding: "1rem", 
+        border: "1px solid #ccc", 
+        borderRadius: "4px",
+        backgroundColor: "#f9f9f9"
+      }}>
+        <h3>Thông tin cá nhân</h3>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "1rem" }}>
+          <div>
+            <label style={{ display: "block", marginBottom: "0.5rem" }}>Họ và tên:</label>
+            <input
+              type="text"
+              name="name"
+              value={formData.name}
+              onChange={handleInputChange}
+              style={{ width: "100%", padding: "0.5rem" }}
+            />
+          </div>
+          <div>
+            <label style={{ display: "block", marginBottom: "0.5rem" }}>Tuổi:</label>
+            <input
+              type="number"
+              name="age"
+              value={formData.age}
+              onChange={handleInputChange}
+              style={{ width: "100%", padding: "0.5rem" }}
+            />
+          </div>
+          <div>
+            <label style={{ display: "block", marginBottom: "0.5rem" }}>Số điện thoại:</label>
+            <input
+              type="text"
+              name="phone"
+              value={formData.phone}
+              onChange={handleInputChange}
+              style={{ width: "100%", padding: "0.5rem" }}
+            />
+          </div>
+          <div>
+            <label style={{ display: "block", marginBottom: "0.5rem" }}>Địa chỉ:</label>
+            <input
+              type="text"
+              name="direct"
+              value={formData.direct}
+              onChange={handleInputChange}
+              style={{ width: "100%", padding: "0.5rem" }}
+            />
+          </div>
+          <div>
+            <label style={{ display: "block", marginBottom: "0.5rem" }}>Ngày sinh:</label>
+            <input
+              type="text"
+              name="birth"
+              value={formData.birth}
+              onChange={handleInputChange}
+              style={{ width: "100%", padding: "0.5rem" }}
+            />
+          </div>
+          <div>
+            <label style={{ display: "block", marginBottom: "0.5rem" }}>Giới tính:</label>
+            <input
+              type="text"
+              name="sex"
+              value={formData.sex}
+              onChange={handleInputChange}
+              style={{ width: "100%", padding: "0.5rem" }}
+            />
+          </div>
+        </div>
+      </div>
+
       <div style={{ marginBottom: "1rem" }}>
         <input
           type="file"
@@ -275,8 +382,33 @@ function App() {
                   Paragraph,
                   Bold,
                   Italic,
-                  Mention,
+                  Strikethrough,
+                  Underline,
+                  Heading,
+                  List,
+                  ListProperties,
+                  Indent,
+                  Link,
+                  BlockQuote,
+                  Table,
+                  TableToolbar,
+                  TableProperties,
+                  TableCellProperties,
+                  TablePropertiesEditing,
+                  TableCellPropertiesEditing,
                   Image,
+                  ImageUpload,
+                  ImageUploadEditing,
+                  ImageUploadProgress,
+                  ImageStyle,
+                  ImageToolbar,
+                  ImageResize,
+                  Font,
+                  FontColor,
+                  FontBackgroundColor,
+                  Alignment,
+                  AlignmentEditing,
+                  Mention,
                   Clipboard,
                   DragDrop,
                   DragDropBlockToolbar,
@@ -284,17 +416,59 @@ function App() {
                   HtmlComment,
                   FullPage,
                 ],
-                toolbar: [
-                  "undo",
-                  "redo",
-                  "|",
-                  "bold",
-                  "italic",
-                  "|",
-                  "clipboard",
-                  "mention",
-                  "htmlcomment",
-                ],
+                toolbar: {
+                  items: [
+                    'undo', 'redo',
+                    '|', 'heading',
+                    '|', 'bold', 'italic', 'strikethrough', 'underline',
+                    '|', 'bulletedList', 'numberedList',
+                    '|', 'outdent', 'indent',
+                    '|', 'link', 'blockQuote', 'insertTable', 'imageUpload',
+                    '|', 'fontColor', 'fontBackgroundColor',
+                    '|', 'alignment',
+                    '|', 'clipboard', 'mention', 'htmlcomment'
+                  ],
+                  shouldNotGroupWhenFull: true
+                },
+                table: {
+                  contentToolbar: [
+                    'tableColumn',
+                    'tableRow',
+                    'mergeTableCells',
+                    'tableProperties',
+                    'tableCellProperties'
+                  ]
+                },
+                image: {
+                  toolbar: [
+                    'imageStyle:inline',
+                    'imageStyle:block',
+                    'imageStyle:side',
+                    '|',
+                    'toggleImageCaption',
+                    'imageTextAlternative',
+                    '|',
+                    'resizeImage'
+                  ],
+                  resizeOptions: [
+                    {
+                      name: 'resizeImage:original',
+                      value: null,
+                      label: 'Original'
+                    },
+                    {
+                      name: 'resizeImage:50',
+                      value: '50',
+                      label: '50%'
+                    },
+                    {
+                      name: 'resizeImage:75',
+                      value: '75',
+                      label: '75%'
+                    }
+                  ],
+                  resizeUnit: '%'
+                },
                 mention: {
                   feeds: [
                     {
