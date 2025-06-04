@@ -43,6 +43,9 @@ import {
   TablePropertiesEditing,
   TableToolbar,
   Underline,
+  GeneralHtmlSupport,
+  HtmlEmbed,
+  SourceEditing,
 } from "ckeditor5";
 import "ckeditor5/ckeditor5.css";
 import generatePDF from "react-to-pdf";
@@ -104,37 +107,37 @@ function App() {
 
       // Clean up HTML to be compatible with CKEditor
       html = html
-        // Remove any style attributes that might cause issues
-        .replace(/ style="[^"]*"/g, "")
-        // Remove any class attributes
-        .replace(/ class="[^"]*"/g, "")
-        // Remove any script tags
-        .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
-        // Remove any iframe tags
-        .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, "")
-        // Remove any style tags
-        .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, "")
-        // Remove any meta tags
-        .replace(/<meta\b[^>]*>/gi, "")
-        // Remove any link tags
-        .replace(/<link\b[^>]*>/gi, "")
-        // Remove any head tags and their content
-        .replace(/<head\b[^<]*(?:(?!<\/head>)<[^<]*)*<\/head>/gi, "")
-        // Remove any body tags but keep their content
-        .replace(/<\/?body[^>]*>/gi, "")
-        // Remove any html tags but keep their content
-        .replace(/<\/?html[^>]*>/gi, "")
-        // Remove any doctype declarations
-        .replace(/<!DOCTYPE[^>]*>/gi, "")
-        // Remove any comments
-        .replace(/<!--[\s\S]*?-->/g, "")
-        // Remove any empty paragraphs
-        .replace(/<p>\s*<\/p>/g, "")
-        // Remove any multiple line breaks
-        .replace(/(\r\n|\n|\r)/gm, "")
-        // Remove any multiple spaces
-        .replace(/\s+/g, " ")
-        // Trim the result
+        // // Remove any style attributes that might cause issues
+        // .replace(/ style="[^"]*"/g, "")
+        // // Remove any class attributes
+        // .replace(/ class="[^"]*"/g, "")
+        // // Remove any script tags
+        // .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
+        // // Remove any iframe tags
+        // .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, "")
+        // // Remove any style tags
+        // .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, "")
+        // // Remove any meta tags
+        // .replace(/<meta\b[^>]*>/gi, "")
+        // // Remove any link tags
+        // .replace(/<link\b[^>]*>/gi, "")
+        // // Remove any head tags and their content
+        // .replace(/<head\b[^<]*(?:(?!<\/head>)<[^<]*)*<\/head>/gi, "")
+        // // Remove any body tags but keep their content
+        // .replace(/<\/?body[^>]*>/gi, "")
+        // // Remove any html tags but keep their content
+        // .replace(/<\/?html[^>]*>/gi, "")
+        // // Remove any doctype declarations
+        // .replace(/<!DOCTYPE[^>]*>/gi, "")
+        // // Remove any comments
+        // .replace(/<!--[\s\S]*?-->/g, "")
+        // // Remove any empty paragraphs
+        // .replace(/<p>\s*<\/p>/g, "")
+        // // Remove any multiple line breaks
+        // .replace(/(\r\n|\n|\r)/gm, "")
+        // // Remove any multiple spaces
+        // .replace(/\s+/g, " ")
+        // // Trim the result
         .trim();
 
       // If the content is empty after cleaning, return a default paragraph
@@ -340,7 +343,7 @@ function App() {
             }
           `}
         </style>
-        <div className="drag-drop-demo" style={{ display: "flex", gap: 32 }}>
+        <div className="drag-drop-demo" style={{ display: "flex" }}>
           <ul
             className="contacts"
             ref={contactsRef}
@@ -362,7 +365,10 @@ function App() {
                     cursor: "grab",
                   }}
                 >
-                  <p style={{ margin: "0.25rem 0" }}>{contact.title}</p>
+                  {/* <h4 style={{ margin: "0 0 0.5rem 0" }}>{contact.name}</h4>
+                  <p style={{ margin: "0.25rem 0" }}>📧 {contact.email}</p>
+                  <p style={{ margin: "0.25rem 0" }}>📞 {contact.tel}</p> */}
+                  <p style={{ margin: "0.25rem 0" }}>📧 {contact.title}</p>
                 </div>
               </li>
             ))}
@@ -413,8 +419,8 @@ function App() {
                   DragDrop,
                   DragDropBlockToolbar,
                   HCardEditing,
-                  HtmlComment,
-                  FullPage,
+                  SourceEditing,
+                  GeneralHtmlSupport,
                 ],
                 toolbar: {
                   items: [
@@ -426,6 +432,7 @@ function App() {
                     '|', 'link', 'blockQuote', 'insertTable', 'imageUpload',
                     '|', 'fontColor', 'fontBackgroundColor',
                     '|', 'alignment',
+                    '|','sourceEditing',
                     '|', 'clipboard', 'mention', 'htmlcomment'
                   ],
                   shouldNotGroupWhenFull: true
@@ -475,6 +482,16 @@ function App() {
                       marker: "@",
                       feed: mentionItems.map((item) => item.id),
                       minimumCharacters: 1,
+                    },
+                  ],
+                },
+                htmlSupport: {
+                  allow: [
+                    {
+                      name: /^.*$/,
+                      styles: true,
+                      attributes: true,
+                      classes: true,
                     },
                   ],
                 },
