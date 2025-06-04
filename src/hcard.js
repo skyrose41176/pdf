@@ -1,7 +1,4 @@
-/**
- * @license Copyright (c) 2003-2025, CKSource Holding sp. z o.o. All rights reserved.
- * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-licensing-options
- */
+
 
 import {
 	Plugin,
@@ -21,8 +18,7 @@ export class HCardEditing extends Plugin {
 		this._defineConverters();
 		this._defineClipboardInputOutput();
 
-		// View-to-model position mapping is needed because an h-card element in the model is represented by a single element,
-		// but in the view it is a more complex structure.
+		
 		this.editor.editing.mapper.on(
 			'viewToModelPosition',
 			viewToModelPositionOutsideModelElement(
@@ -214,7 +210,7 @@ function getCardDataFromViewElement( viewElement ) {
 	const keyElement = children.find(
 		element => element.is( 'element', 'span' ) && element.hasClass( 'p-key' )
 	);
-
+	
 	return {
 		// name: getText( linkElement ),
 		// tel: getText( telElement ),

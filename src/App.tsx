@@ -60,15 +60,6 @@ function App() {
       return;
     }
     generatePDF(targetRef, { filename: "page.pdf" });
-
-    // const options = { format: "A4" };
-    // // Example of options with args //
-    // // let options = { format: 'A4', args: ['--no-sandbox', '--disable-setuid-sandbox'] };
-
-    // const file = { content: template };
-    // HTMLToPDF.generatePdf(file, options).then((pdfBuffer: any) => {
-    //   console.log("PDF Buffer:-", pdfBuffer);
-    // });
   };
 
   const convertDocxToHtml = async (file: File) => {
@@ -169,7 +160,6 @@ function App() {
   useEffect(() => {
     const handleDragStart = (event: DragEvent) => {
       const target = event.target as HTMLElement;
-      // Đảm bảo target hợp lệ
       if (!target) return;
 
       const draggable = target.closest("[draggable]");
@@ -265,10 +255,7 @@ function App() {
                     cursor: "grab",
                   }}
                 >
-                  {/* <h4 style={{ margin: "0 0 0.5rem 0" }}>{contact.name}</h4>
-              <p style={{ margin: "0.25rem 0" }}>📧 {contact.email}</p>
-              <p style={{ margin: "0.25rem 0" }}>📞 {contact.tel}</p> */}
-                  <p style={{ margin: "0.25rem 0" }}>📧 {contact.title}</p>
+                  <p style={{ margin: "0.25rem 0" }}>{contact.title}</p>
                 </div>
               </li>
             ))}
@@ -308,7 +295,6 @@ function App() {
                   "mention",
                   "htmlcomment",
                 ],
-                // initialData: template,
                 mention: {
                   feeds: [
                     {
@@ -317,24 +303,6 @@ function App() {
                       minimumCharacters: 1,
                     },
                   ],
-                },
-                htmlSupport: {
-                  fullPage: {
-                    allowRenderStylesFromHead: true,
-                    // Strip unsafe properties and values, for example:
-                    // values like url( ... ) that may execute malicious code
-                    // from an unknown source.
-                    // sanitizeCss(CssString) {
-                    //   const sanitizedCss = sanitize(CssString);
-
-                    //   return {
-                    //     css: sanitizedCss,
-                    //     // true or false depending on whether
-                    //     // the sanitizer stripped anything.
-                    //     hasChanged: true,
-                    //   };
-                    // },
-                  },
                 },
               }}
               onChange={(_, editor) => {
