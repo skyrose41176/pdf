@@ -34,8 +34,10 @@ import {
   LinkImage,
   List,
   ListProperties,
+  PageBreak,
   Paragraph,
   PendingActions,
+  SimpleUploadAdapter,
   SourceEditing,
   Strikethrough,
   Style,
@@ -142,7 +144,13 @@ function App() {
         if (previewRef.current) {
           await renderAsync(arrayBuffer, previewRef.current);
           let html = previewRef.current.innerHTML;
-          editorRef.current?.setData(html);
+          // const cleanHtml = html
+          // .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '') // bỏ toàn bộ thẻ <style>
+          // .replace(/style="[^"]*page-break[^"]*"/gi, '') // bỏ thuộc tính page-break
+          // .replace(/class="[^"]*(MsoPage|MsoHeader|MsoFooter)[^"]*"/gi, '') // bỏ class Word phân trang
+          // .replace(/<o:p>.*?<\/o:p>/gi, ''); // bỏ tag rác Word
+            // html = html.replace(`class="docx"`,``)
+            editorRef.current?.setData(html);
         }
       } catch (error) {
         console.error("Error handling file upload:", error);
@@ -186,6 +194,10 @@ function App() {
       }
     };
   }, []);
+  console.log(
+    'Has SimpleUploadAdapter:',
+    ClassicEditor.builtinPlugins?.some(p => p.pluginName === 'SimpleUploadAdapter')
+  );
   return (
     <div className="App" style={{ padding: "2rem", fontFamily: "Arial" }}>
       <h2>Soạn mẫu với CKEditor</h2>
@@ -337,6 +349,8 @@ function App() {
                 licenseKey: "GPL",
                 language: 'vi',
                 plugins: [
+                  PageBreak,
+                  SimpleUploadAdapter,
                   Style,
                   Essentials,
                   Paragraph,
@@ -391,17 +405,18 @@ function App() {
                     '|', 'bulletedList', 'numberedList',
                     '|', 'outdent', 'indent',
                     '|', 'style',
-                    '|', 'link', 'blockQuote', 'insertTable','insertImage','resizeImage',
+                    '|', 'link', 'blockQuote', 'insertTable','uploadImage','resizeImage',
                     '|', 'fontColor', 'fontBackgroundColor',
                     '|', 'alignment',
                     '|','sourceEditing',
                     '|','htmlComment',
                     '|','fullPage',
+                    '|','pageBreak',
                     '|','htmlEmbed',
                     '|', 'clipboard', 'htmlcomment',
                     '|','ckboxImageEdit'
                   ],
-                  // shouldNotGroupWhenFull: true
+                  shouldNotGroupWhenFull: true
                 },
                 table: {
                   contentToolbar: [
@@ -455,7 +470,7 @@ function App() {
                   },
                 },
                 simpleUpload: {
-                  uploadUrl: '/api/upload-image', // API upload của bạn
+                  uploadUrl: 'https://your-api/upload', // 🧠 API cần tồn tại và trả về { url: '...' }
                 },
                 htmlEmbed: {
                   showPreviews: true,

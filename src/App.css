@@ -64,5 +64,5 @@ left: 0 !important;
 }
 .docx-wrapper {
   padding: 0 !important;
-  display: inline !important;
+  display: block !important;
 }
