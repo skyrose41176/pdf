@@ -4,12 +4,11 @@
     { "path": "./tsconfig.app.json" }
   ],
   "compilerOptions": {
+    "composite": true,
+    "declaration": true,
     "typeRoots": [
       "./node_modules/@types",
       "./src/types"
     ]
-  },
-  "include": [
-    "src/**/*"
-  ]
+  }
 }

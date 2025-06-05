@@ -401,7 +401,7 @@ function App() {
                     '|', 'clipboard', 'htmlcomment',
                     '|','ckboxImageEdit'
                   ],
-                  shouldNotGroupWhenFull: true
+                  // shouldNotGroupWhenFull: true
                 },
                 table: {
                   contentToolbar: [
