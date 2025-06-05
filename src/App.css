@@ -62,3 +62,7 @@ button:hover {
 .ck-source-editing-area textarea{
 left: 0 !important;
 }
+.docx-wrapper {
+  padding: 0 !important;
+  display: inline !important;
+}

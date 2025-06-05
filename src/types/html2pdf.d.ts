@@ -13,6 +13,12 @@ declare module 'html2pdf.js' {
       format?: string | [number, number];
       orientation?: 'portrait' | 'landscape';
     };
+    pagebreak?: {
+      mode?: ('avoid-all' | 'css' | 'legacy')[];
+      before?: string | string[];
+      after?: string | string[];
+      avoid?: string | string[];
+    };
   }
 
   interface Html2PdfInstance {

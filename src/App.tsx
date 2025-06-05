@@ -2,6 +2,7 @@ import { CKEditor } from "@ckeditor/ckeditor5-react";
 import {
   Alignment,
   AlignmentEditing,
+  AutoImage,
   BlockQuote,
   Bold,
   ClassicEditor,
@@ -20,6 +21,8 @@ import {
   HtmlEmbed,
   Image,
   ImageResize,
+  ImageResizeEditing,
+  ImageResizeHandles,
   ImageStyle,
   ImageToolbar,
   ImageUpload,
@@ -28,6 +31,7 @@ import {
   Indent,
   Italic,
   Link,
+  LinkImage,
   List,
   ListProperties,
   Paragraph,
@@ -41,16 +45,15 @@ import {
   TableProperties,
   TablePropertiesEditing,
   TableToolbar,
-  Underline,
+  Underline
 } from "ckeditor5";
 import "ckeditor5/ckeditor5.css";
 import { renderAsync } from "docx-preview";
+import html2pdf from "html2pdf.js";
 import Mustache from "mustache";
 import { useEffect, useRef, useState } from "react";
-import generatePDF from "react-to-pdf";
 import "./App.css";
 import { HCardEditing } from "./hcard";
-import html2pdf from "html2pdf.js";
 const contacts = [
   {
     title: "Tên",
@@ -107,20 +110,21 @@ function App() {
     targetRef.current.innerHTML = result;
   };
   const handleExportPDF = () => {
-    // if (!targetRef.current) {
-    //   alert("Vui lòng render dữ liệu trước khi xuất PDF");
-    //   return;
-    // }
-    // generatePDF(targetRef, { filename: "page.pdf" });
     const element = document.getElementById("pdf-content");
   if (element) {
     html2pdf()
       .set({
-        margin: 10,
-        filename: "document.pdf",
-        image: { type: "jpeg", quality: 0.98 },
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+        margin:       [10, 10, 10, 10], // tránh margin 0 làm mất nội dung
+        filename:     'document.pdf',
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true }, // useCORS để hỗ trợ ảnh ngoài
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak: {
+          mode: ['avoid-all', 'css', 'legacy'],  // Tự động chia trang
+          before: '.page-break-before',          // Bắt đầu trang mới trước thẻ này
+          after: '.page-break-after',            // Trang mới sau thẻ này
+          avoid: ['.avoid-break', 'table']       // Tránh cắt giữa các phần tử
+        }
       })
       .from(element)
       .save();
@@ -138,7 +142,6 @@ function App() {
         if (previewRef.current) {
           await renderAsync(arrayBuffer, previewRef.current);
           let html = previewRef.current.innerHTML;
-          // html = html.replace(`padding: 30px; `,``);
           editorRef.current?.setData(html);
         }
       } catch (error) {
@@ -332,6 +335,7 @@ function App() {
               data={template}
               config={{
                 licenseKey: "GPL",
+                language: 'vi',
                 plugins: [
                   Style,
                   Essentials,
@@ -359,6 +363,9 @@ function App() {
                   ImageStyle,
                   ImageToolbar,
                   ImageResize,
+                  ImageResizeEditing,
+                  ImageResizeHandles,
+                  LinkImage,
                   Font,
                   FontColor,
                   FontBackgroundColor,
@@ -373,7 +380,8 @@ function App() {
                   HtmlComment,
                   FullPage,
                   HtmlEmbed,
-                  PendingActions
+                  PendingActions,
+                  AutoImage 
                 ],
                 toolbar: {
                   items: [
@@ -383,14 +391,15 @@ function App() {
                     '|', 'bulletedList', 'numberedList',
                     '|', 'outdent', 'indent',
                     '|', 'style',
-                    '|', 'link', 'blockQuote', 'insertTable', 'imageUpload',
+                    '|', 'link', 'blockQuote', 'insertTable','insertImage','resizeImage',
                     '|', 'fontColor', 'fontBackgroundColor',
                     '|', 'alignment',
                     '|','sourceEditing',
                     '|','htmlComment',
                     '|','fullPage',
                     '|','htmlEmbed',
-                    '|', 'clipboard', 'htmlcomment'
+                    '|', 'clipboard', 'htmlcomment',
+                    '|','ckboxImageEdit'
                   ],
                   shouldNotGroupWhenFull: true
                 },
@@ -411,6 +420,7 @@ function App() {
                     '|',
                     'toggleImageCaption',
                     'imageTextAlternative',
+                    'ckboxImageEdit',
                     '|',
                     'resizeImage'
                   ],
@@ -420,6 +430,11 @@ function App() {
                       value: null,
                       label: 'Original'
                     },
+                    {
+                      name: 'resizeImage:custom',
+                      value: 'custom',
+                      icon: 'custom'
+                  },
                     {
                       name: 'resizeImage:50',
                       value: '50',
@@ -431,7 +446,16 @@ function App() {
                       label: '75%'
                     }
                   ],
-                  resizeUnit: '%'
+                  resizeUnit: '%',
+                  insert: {
+                    // This is the default configuration, you do not need to provide
+                    // this configuration key if the list content and order reflects your needs.
+                    type: 'auto',
+                    integrations: [ 'upload', 'assetManager', 'url' ]
+                  },
+                },
+                simpleUpload: {
+                  uploadUrl: '/api/upload-image', // API upload của bạn
                 },
                 htmlEmbed: {
                   showPreviews: true,
@@ -470,8 +494,7 @@ function App() {
       >
         <html>
           <body>
-            <div ref={targetRef} id="pdf-content">
-
+            <div ref={targetRef}  style={{ textAlign: 'left', background: '#fff', padding: '20px' }} id="pdf-content">
             </div>
           </body>
         </html>
